@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Aonde Dormir no Rio App</title>
+</head>
+<body>
+	
+
+	<script src="js/jquery.js"></script>
+	<script>
+		$(function(){
+
+			// call the auth
+			auth();
+		});
+
+		var auth = function(){
+
+			$.ajax({
+				type : 'GET',
+				url  : 'http://api.riodatamine.com.br/rest/request-token?app-id=30a12345bc286658678d7142a94d4c8a&app-secret=rj1rf-5t9bk-vmnvq&redirect_uri=' 
+			}).done(function(msg){
+				console.warn(msg);
+			});
+
+		}
+
+	</script>
+</body>
+</html>
