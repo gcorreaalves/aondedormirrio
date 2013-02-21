@@ -10,21 +10,102 @@
 	<script src="js/jquery.js"></script>
 	<script>
 		$(function(){
-
-			// call the auth
-			auth();
+			console.log(datamine.find(
+									'http://api.riodatamine.com.br/rest/infraestruturas/escolas', 
+									'json'));
 		});
+		
+		datamine = (function(){
 
-		var auth = function(){
-
-			$.ajax({
-				type : 'GET',
-				url  : 'http://api.riodatamine.com.br/rest/request-token?app-id=30a12345bc286658678d7142a94d4c8a&app-secret=rj1rf-5t9bk-vmnvq&redirect_uri=' 
-			}).done(function(msg){
-				console.warn(msg);
-			});
-
-		}
+			var token = '';
+			
+			var setToken = function(token){
+				this.token = token;
+				
+				// TODO: salvar em cookie
+			}
+			var getToken = function(){
+				return this.token;
+				
+				// TODO: resgatar do cookie
+			}
+		
+			var ajax = function(ajaxObj){
+				
+				var data = $.ajax({
+					type: ajaxObj.type,       
+					data: ajaxObj.data,       
+					url: ajaxObj.url,
+					async:ajaxObj.async,
+					headers:ajaxObj.headers,
+					success: function(data, textStatus, request) {
+						result  = {d : data, s : textStatus, r : request};
+					}
+				})
+				
+				return {
+					returnData : result
+				}
+			
+			}
+		
+			var auth = (function(){
+				
+				var ajaxObj = {
+								url   : 'http://api.riodatamine.com.br/rest/request-token?app-id=30a12345bc286658678d7142a94d4c8a&app-secret=rj1rf-5t9bk-vmnvq&redirect_uri=',
+								type  : 'GET',
+								async : false
+							}
+				
+				tokenResult = ajax(ajaxObj);
+				setToken(tokenResult.returnData.r.getResponseHeader('X-Access-Token'));
+				
+				// TODO: tratar a chamada para ocorrer somente uma vez
+		
+			})()
+			
+			var query = function(url, format, search, neighbourhood, location, radius){
+			
+				params = {			
+						f	: format,
+						s	: search,
+						n	: neighbourhood,
+						l	: location,
+						r	: radius				
+				}
+			
+				var ajaxObj = {
+					url   : url,
+					type  : 'GET',
+					data  : params,
+					async : false, 
+					headers: { 
+						'Authorization' : getToken()
+					}
+				}
+			
+				queryResult = ajax(ajaxObj);
+				
+				return queryResult.returnData.d;
+			
+			}
+			
+			return{
+			
+				find : function(url, format, search, neighbourhood, location, radius){
+							return query(
+									url, 
+									format,
+									search,
+									neighbourhood,
+									location,
+									radius
+									)
+						}
+			
+			}
+			
+		})()		
 
 	</script>
 </body>
