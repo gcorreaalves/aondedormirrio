@@ -10,27 +10,23 @@
 	<script src="js/jquery.js"></script>
 	<script>
 		$(function(){
-			console.log(datamine.find(
+			
+			var RioOndeDormir = new datamine( '30a12345bc286658678d7142a94d4c8a', 'rj1rf-5t9bk-vmnvq' );
+
+			console.log(RioOndeDormir.find(
 									'http://api.riodatamine.com.br/rest/infraestruturas/escolas', 
 									'json'));
+
 		});
 		
-		datamine = (function(){
+		var datamine = function( apiId, apiSecret ){
+
+			var apiId = apiId || '';
+			var apiSecret = apiSecret || '';
 
 			var token = '';
-			
-			var setToken = function(token){
-				this.token = token;
-				
-				// TODO: salvar em cookie
-			}
-			var getToken = function(){
-				return this.token;
-				
-				// TODO: resgatar do cookie
-			}
 		
-			var ajax = function(ajaxObj){
+			var ajax = function( ajaxObj ){
 				
 				var data = $.ajax({
 					type: ajaxObj.type,       
@@ -39,6 +35,10 @@
 					async:ajaxObj.async,
 					headers:ajaxObj.headers,
 					success: function(data, textStatus, request) {
+						result  = {d : data, s : textStatus, r : request};
+					},
+					error: function(data, textStatus, request) {
+						alert('Erro ao tentar fazer a requisição: ' + data.status);
 						result  = {d : data, s : textStatus, r : request};
 					}
 				})
@@ -50,28 +50,33 @@
 			}
 		
 			var auth = (function(){
+
+				params = {			
+						'app-id'		: apiId,
+						'app-secret'	: apiSecret,	
+						'redirect_uri'	: ''				
+				}
 				
 				var ajaxObj = {
-								url   : 'http://api.riodatamine.com.br/rest/request-token?app-id=30a12345bc286658678d7142a94d4c8a&app-secret=rj1rf-5t9bk-vmnvq&redirect_uri=',
+								url   : 'http://api.riodatamine.com.br/rest/request-token',
 								type  : 'GET',
-								async : false
+								async : false,
+								data  : params
 							}
 				
-				tokenResult = ajax(ajaxObj);
-				setToken(tokenResult.returnData.r.getResponseHeader('X-Access-Token'));
-				
-				// TODO: tratar a chamada para ocorrer somente uma vez
+				result = ajax( ajaxObj );
+				token  = result.returnData.r.getResponseHeader('X-Access-Token');
 		
 			})()
 			
-			var query = function(url, format, search, neighbourhood, location, radius){
+			var query = function( url, format, search, neighbourhood, location, radius ){
 			
 				params = {			
-						f	: format,
-						s	: search,
-						n	: neighbourhood,
-						l	: location,
-						r	: radius				
+						format			: format,
+						search			: search,
+						neighbourhood	: neighbourhood,
+						location		: location,
+						radius			: radius				
 				}
 			
 				var ajaxObj = {
@@ -80,11 +85,11 @@
 					data  : params,
 					async : false, 
 					headers: { 
-						'Authorization' : getToken()
+						'Authorization' : token
 					}
 				}
 			
-				queryResult = ajax(ajaxObj);
+				queryResult = ajax( ajaxObj );
 				
 				return queryResult.returnData.d;
 			
@@ -92,20 +97,12 @@
 			
 			return{
 			
-				find : function(url, format, search, neighbourhood, location, radius){
-							return query(
-									url, 
-									format,
-									search,
-									neighbourhood,
-									location,
-									radius
-									)
-						}
-			
+				find : function( url, format, search, neighbourhood, location, radius ){
+							return query( url, format, search, neighbourhood,	location, radius )
+				}			
 			}
 			
-		})()		
+		}	
 
 	</script>
 </body>
